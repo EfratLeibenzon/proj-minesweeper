@@ -14,7 +14,7 @@ footer {
 
 h3 {
     color: rgb(167, 255, 167);
-    background-color: rgba(205, 175, 226, 0.854)
+    background-color: rgba(205, 175, 226, 0.854);
 }
 
 table {
@@ -28,9 +28,17 @@ table {
 
 .cell {
     background-color: rgb(188, 175, 214);
+    content-visibility: visible;
     margin: auto;
     border-color: black;
     width: 40px;
     height: 40px;
     cursor: pointer;
+}
+
+.cell.covered {
+    background-color: cornflowerblue;
+    content-visibility: hidden;
+    opacity: 100%;
+
 }
