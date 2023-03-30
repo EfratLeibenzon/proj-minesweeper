@@ -42,3 +42,7 @@ table {
     opacity: 100%;
 
 }
+
+.cell.covered.marked {
+    background-color: palevioletred;
+}

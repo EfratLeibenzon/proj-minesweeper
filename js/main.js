@@ -1,11 +1,8 @@
 
 const EMPTY = ' '
 const MINE = '💣'
-const FLAG = '🚩'
-
 
 const gBoard = []
-
 
 const gLevel = {
     SIZE: 4,
@@ -22,7 +19,6 @@ const gGame = {
 function onInit() {
     buildBoard()
     renderBoard(gBoard, '.board')
-
 }
 
 
@@ -126,7 +122,7 @@ function renderBoard(mat, selector) {
             else if (cell.isMine === false && numOfCellNegs > 0) { cell = numOfCellNegs }
             else { cell = EMPTY }
             const className = `cell cell-${i}-${j} covered`
-            strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})">${cell}</td>\n`
+            strHTML += `<td class="${className}" oncontextmenu="onCellMarked(this, ${i}, ${j})" onclick="onCellClicked(this, ${i}, ${j})">${cell}</td>\n`
         }
         strHTML += '</tr>\n'
 
@@ -140,14 +136,35 @@ function renderBoard(mat, selector) {
 
 // Called when a cell is clicked
 function onCellClicked(elCell, i, j) {
+    if (elCell.classList.contains("marked")) {
+        return
+    }
     gBoard[i][j].isShown = true
     console.log('i', i, 'j', j)
     elCell.classList.remove('covered')
-    if (gBoard[i][j].isMine === true) {
-        console.log('game over')
-    } else if (gBoard[i][j].isMine === EMPTY) {
-        elCell.classList.remove('covered')
+    gGame.shownCount++
+    checkGameOver()
 
+    if (gBoard[i][j].isMine === true) {
+        gGame.shownCount++
+        gGame.isOn = false
+        console.log('game over')
+    }
+    if (gBoard[i][j].minesAroundCount === 0 && gBoard[i][j].isMine === false) {
+        var rowIdx = i
+        var colIdx = j
+        for (var k = rowIdx - 1; k <= rowIdx + 1; k++) {
+            if (k < 0 || k >= gBoard.length) continue
+            for (var n = colIdx - 1; n <= colIdx + 1; n++) {
+                if (k === rowIdx && n === colIdx) continue
+                if (n < 0 || n >= gBoard[0].length) continue
+                console.log(gBoard[k][n])
+                var elNeg = document.querySelector(`.cell-${k}-${n}`)
+                elNeg.classList.remove('covered')
+                console.log(elNeg.classList)
+                gGame.shownCount++
+            }
+        }
     }
 }
 
@@ -155,8 +172,14 @@ function onCellClicked(elCell, i, j) {
 // Called when a cell is rightclicked
 // See how you can hide the context
 // menu on right click
-function onCellMarked(elCell) {
-
+function onCellMarked(elCell, i, j) {
+    gBoard[i][j].isMarked = true
+    gGame.markedCount++
+    console.log('i', i, 'j', j)
+    checkGameOver()
+    document.getElementsByClassName("cell-${i}-${j}");
+    addEventListener("contextmenu", (e) => { e.preventDefault() });
+    elCell.classList.toggle('marked')
 }
 
 
@@ -164,8 +187,8 @@ function onCellMarked(elCell) {
 // marked, and all the other cells
 // are shown
 function checkGameOver() {
-
-
+    if (gGame.markedCount === gLevel.MINES && gGame.shownCount === gLevel.SIZE * gLevel.SIZE - gLevel.MINES)
+        console.log('you win!')
 }
 
 
@@ -196,17 +219,6 @@ function expandShown(board, elCell, i, j) {
 //     clearInterval(gIntervalId);
 //   }
 
-function renderCell(location, value) {
-    const cellSelector = '.' + getClassName(location) // cell-i-j
-    const elCell = document.querySelector(cellSelector)
-    elCell.innerHTML = value
-}
-
-// Returns the class name for a specific cell
-function getClassName(location) {
-    const cellClass = 'cell-' + location.i + '-' + location.j
-    return cellClass
-}
 
 function getRandomInt(min, max) {
     min = Math.ceil(min)
