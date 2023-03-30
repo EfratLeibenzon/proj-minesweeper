@@ -1,9 +1,11 @@
 
 const EMPTY = ' '
 const MINE = '💣'
+const FLAG = '🚩'
 
 
 const gBoard = []
+
 
 const gLevel = {
     SIZE: 4,
@@ -19,7 +21,6 @@ const gGame = {
 // This is called when page loads
 function onInit() {
     buildBoard()
-    placeMines(gBoard, gLevel.MINES)
     renderBoard(gBoard, '.board')
 
 }
@@ -36,33 +37,84 @@ function buildBoard() {
         gBoard.push([])
         for (var j = 0; j < gLevel.SIZE; j++) {
             gBoard[i][j] = {
+                isMine: false,
                 minesAroundCount: 0,
                 isShown: false,
-                isMine: false,
-                isMarked: false
+                isMarked: false,
             }
-
-
         }
     }
+
+    console.table(gBoard)
+    var poss = findEmptycellsByAmount(gLevel.MINES)
+    placeMines(poss)
     console.table(gBoard)
 }
 
 
 
-function placeMines(mat, numOfMines) {
 
-    if (numOfMines > mat.length * mat[0].length) return
-    for (var i = 0; i < numOfMines; i++) {
-        var row = getRandomInt(0, mat.length)
-        var col = getRandomInt(0, mat[0].length)
-        if (mat[row][col].isMine === true) {
-            i--
-        } else {
-            mat[row][col].isMine = true
+
+
+
+function placeMines(emptyPoss) {
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[i].length; j++) {
+            if (gBoard[i][j] === emptyPoss.pop()) { gBoard[i][j].isMine = true }
+            else continue
+
         }
     }
 }
+
+
+function findEmptycellsByAmount(amount) {
+    var emptyCellsByAmount = []
+    var emptyCells = []
+    if (amount > gBoard.length * gBoard.length) return
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[i].length; j++) {
+            var cell = gBoard[i][j]
+            if (cell.isMine) continue
+            var pos = { i, j }
+            emptyCells.push(pos)
+        }
+    }
+
+    for (var i = 0; i < amount; i++) {
+        for (var j = 0; j < emptyCells; j++) {
+            var mineCell = emptyCells.splice(getRandomInt(0, emptyCells.length), 1)[0]
+            emptyCellsByAmount.push(mineCell)
+        }
+
+    }
+    console.log(emptyCellsByAmount)
+    return emptyCellsByAmount
+}
+
+
+
+
+// function getRandomEmptyCells(mat) {
+//     var randEmptyCells = []
+//     for (var i = 0; i < mat.length; i++) {
+//         for (var j = 0; j < mat[i].length; j++) {
+//             var row = getRandomInt(0, mat.length)
+//             var col = getRandomInt(0, mat[i].length)
+//             if (gBoard[row][col].isMine === true) {
+//                 continue
+//             } else {
+//                 randEmptyCells.push(gBoard[row][col])
+
+//             }
+//         }
+//     }
+
+//     return randEmptyCells
+// }
+
+
+
 
 
 
@@ -70,19 +122,35 @@ function placeMines(mat, numOfMines) {
 // and set the cell's
 // minesAroundCount.
 
-function setMinesNegsCount(board) {
+function setMinesNegsCount(rowIdx, colIdx, mat) {
     var negsCount = 0
-    for (var i = board.length - 1; i <= board.length + 1; i++) {
-        if (i < 0 || i >= board.length) continue
 
-        for (var j = board[i].length - 1; j <= board[i].length + 1; j++) {
-            if (j < 0 || j >= board[i].length) continue
-            if (i === board.length && j === board[i].length) continue
-            if (board[i][j] === MINE) negsCount++
+    for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+        if (i < 0 || i >= mat.length) continue
+
+        for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+            if (j < 0 || j >= mat[i].length) continue
+            if (i === rowIdx && j === colIdx) continue
+            if (mat[i][j].isMine) negsCount++
         }
     }
     return negsCount
 }
+
+
+// function setMinesNegsCount(board) {
+//     var negsCount = 0
+//     for (var i = board.length - 1; i <= board.length + 1; i++) {
+//         if (i < 0 || i >= board.length) continue
+
+//         for (var j = board[i].length - 1; j <= board[i].length + 1; j++) {
+//             if (j < 0 || j >= board[i].length) continue
+//             if (i === board.length && j === board[i].length) continue
+//             if (board[i][j].isMine === true) negsCount++
+//             gBoard[i][j].minesAroundCount = negsCount
+//         }
+//     }
+// }
 
 
 // Render the board as a <table>
@@ -144,4 +212,14 @@ function checkGameOver() {
 // at the Bonuses section below)
 function expandShown(board, elCell, i, j) {
 
+}
+
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min) + min)
+}
+function drawNum(NUMS) {
+    return NUMS.splice(getRandomInt(0, NUMS.length), 1)[0]
 }
