@@ -1,12 +1,14 @@
 
 const EMPTY = ' '
 const MINE = '💣'
-const life = '❤️'
-const lifeGone = '💔'
-const smileyReguler = '😊'
-const smileyWin = '🤩'
-const smileyLose = '🤯'
+const LIFE = '❤️'
+const LIFE_GONE = '💔'
+const SMILEY_REGULAR = '😊'
+const SMILEY_WIN = '🤩'
+const SMILEY_LOSE = '🤯'
 
+var gStartTime
+var gIntervalId
 
 var gBoard = []
 
@@ -47,26 +49,27 @@ function buildBoard() {
             }
         }
     }
-    placeMines(gLevel.MINES)
+    // placeMines()
 
-    for (var i = 0; i < gBoard.length; i++) {
-        for (var j = 0; j < gBoard[i].length; j++) {
-            gBoard[i][j].minesAroundCount = setMinesNegsCount(i, j, gBoard)
-        }
-    }
     console.table(gBoard)
 }
 
 
+
 function placeMines(amount) {
 
-    for (var k = 0; k < amount; k++) {
+    for (var i = 0; i < amount; i++) {
         var emptyCells = findEmptyPoss()
 
         var cellPos = emptyCells[getRandomInt(0, emptyCells.length)]
         var currCell = gBoard[cellPos.i][cellPos.j]
         currCell.isMine = true
 
+    }
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[i].length; j++) {
+            gBoard[i][j].minesAroundCount = setMinesNegsCount(i, j, gBoard)
+        }
     }
 }
 
@@ -84,7 +87,7 @@ function findEmptyPoss() {
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard[i].length; j++) {
             var cell = gBoard[i][j]
-            if (!cell.isMine) {
+            if (!cell.isMine && !cell.isShown) {
                 var pos = { i, j }
                 emptyPoss.push(pos)
             }
@@ -117,7 +120,7 @@ function setMinesNegsCount(rowIdx, colIdx, mat) {
 function renderBoard(mat, selector) {
 
     var elModal = document.querySelector('.modal')
-    elModal.style.display = 'none'
+    elModal.classList.add('invisible')
 
     var strHTML = '<table><tbody>'
     for (var i = 0; i < mat.length; i++) {
@@ -127,7 +130,7 @@ function renderBoard(mat, selector) {
             var numOfCellNegs = cell.minesAroundCount
             if (cell.isMine) {
                 cell = MINE
-                // strHTML += `class="mine"`
+
             }
             else if (cell.isMine === false && numOfCellNegs > 0) { cell = numOfCellNegs }
             else { cell = EMPTY }
@@ -151,24 +154,28 @@ function onCellClicked(elCell, i, j) {
     if (!gGame.isOn) return
     if (elCell.classList.contains("marked")) return
     console.log('i', i, 'j', j)
+    if (gGame.shownCount === 0) {
+        gBoard[i][j].isShown = true;
+        placeMines(gLevel.MINES)
+        renderBoard(gBoard, '.board')
+        startTimer()
+
+    }
+    revealCell(i, j)
 
     if (gBoard[i][j].isMine === true) {
-        gBoard[i][j].isShown = true
-        elCell.classList.remove('covered')
-        // var elmines = document.querySelectorAll("mine")
-        // elmines.classList.remove('marked', 'covered')
-
-        gGame.isOn = false
         gGame.shownCount++
         console.log('game over')
         var msg = 'Game Over'
         openModal(msg)
+        revealMines()
+        stopTimer()
+        gGame.isOn = false
 
-    } else if (gBoard[i][j].minesAroundCount === 0 && gBoard[i][j].isMine === false) {
-        expandShown(gBoard, elCell, i, j)
     } else {
-        gBoard[i][j].isShown = true
-        elCell.classList.remove('covered')
+        if (gBoard[i][j].minesAroundCount === 0 && gBoard[i][j].isMine === false) {
+            expandShown(gBoard, elCell, i, j)
+        }
         gGame.shownCount++
         checkGameOver()
     }
@@ -180,8 +187,14 @@ function onCellClicked(elCell, i, j) {
 // menu on right click
 function onCellMarked(elCell, i, j) {
     if (!gGame.isOn) return
-    gBoard[i][j].isMarked = true
-    gGame.markedCount++
+    if (gBoard[i][j].isMarked) {
+        gBoard[i][j].isMarked = false
+        gGame.markedCount--
+    } else {
+        gBoard[i][j].isMarked = true
+        gGame.markedCount++
+    }
+
     console.log('i', i, 'j', j)
     checkGameOver()
     document.getElementsByClassName("cell-${i}-${j}");
@@ -202,7 +215,9 @@ function checkGameOver() {
         console.log('you win!')
         var msg = 'You Won!'
         openModal(msg)
+        stopTimer()
         gGame.isOn = false
+
     }
 
 }
@@ -212,7 +227,7 @@ function openModal(msg) {
     const elModal = document.querySelector('.modal')
     const elSpan = elModal.querySelector('.msg')
     elSpan.innerText = msg
-    elModal.style.display = 'block'
+    elModal.classList.remove('invisible')
 }
 // When user clicks a cell with no
 // mines around, we need to open
@@ -255,15 +270,19 @@ function expandShown(board, elCell, i, j) {
 // o Medium (8 * 8 with 14 MINES)
 // o Expert (12 * 12 with 32 MINES)
 function setGameLevel(str) {
-    restartGame()
     var level = str
-    if (level = 'medium') {
+    if (level === 'medium') {
         gLevel.SIZE = 8, gLevel.MINES = 14
-    } else if (level = 'Expert') {
+    } else if (level === 'expert') {
         gLevel.SIZE = 12, gLevel.MINES = 32
     } else { gLevel.SIZE = 4, gLevel.MINES = 2 }
+    restartGame()
 
 }
+
+// function checkLives() {
+
+// }
 
 function restartGame() {
     gBoard = []
@@ -273,17 +292,57 @@ function restartGame() {
     gGame.secsPassed = 0
     buildBoard()
     renderBoard(gBoard, '.board')
+    totalSeconds = 0
+    secondsLabel.innerHTML = '00'
+    minutesLabel.innerHTML = '00'
+
 }
 
+function revealMines() {
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[i].length; j++) {
 
+            if (gBoard[i][j].isMine === true && gBoard[i][j].isShown === false) {
+                revealCell(i, j)
 
+            }
 
+        }
+    }
+}
+
+function revealCell(i, j) {
+    gBoard[i][j].isShown = true
+    var elCell = document.querySelector(`.cell-${i}-${j}`)
+    elCell.classList.remove('covered')
+}
 
 function startTimer() {
     gStartTime = Date.now();
-    gIntervalId = setInterval(updateTimer, 10);
+    gIntervalId = setInterval(setTime, 1000);
 
 }
+
+var minutesLabel = document.getElementById("minutes");
+var secondsLabel = document.getElementById("seconds");
+var totalSeconds = 0;
+;
+
+function setTime() {
+    ++totalSeconds;
+    secondsLabel.innerHTML = pad(totalSeconds % 60);
+    minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+}
+
+function pad(val) {
+    var valString = val + "";
+    if (valString.length < 2) {
+        return "0" + valString;
+    } else {
+        return valString;
+    }
+}
+
 
 function stopTimer() {
     clearInterval(gIntervalId);

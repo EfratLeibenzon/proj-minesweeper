@@ -23,14 +23,13 @@ table {
     padding-top: 150px;
     margin: auto;
     border: 10px;
-    border-color: rgb(0, 0, 0);
+
 }
 
 .cell {
     background-color: rgb(188, 175, 214);
     content-visibility: visible;
     margin: auto;
-    border-color: black;
     width: 40px;
     height: 40px;
     cursor: pointer;
@@ -48,22 +47,23 @@ table {
 }
 
 .modal {
+    opacity: 1;
     background-color: palevioletred;
     color: rgb(167, 255, 167);
 }
 
+.modal.invisible {
+    opacity: 0;
+}
 
-.levels button :first-child {
+.levels button {
     background-color: rgb(167, 255, 167);
-
+    color: darkviolet;
+    border: none
 }
 
-.levels button :nth-child(2) {
-    background-color: rgb(244, 237, 104);
-
-}
-
-.levels button :last-child {
-    background-color: rgb(123, 50, 163);
-
+.restart-btn {
+    background-color: rgb(167, 255, 167);
+    color: darkviolet;
+    border: none
 }
