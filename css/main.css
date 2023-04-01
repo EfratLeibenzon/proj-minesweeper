@@ -46,3 +46,24 @@ table {
 .cell.covered.marked {
     background-color: palevioletred;
 }
+
+.modal {
+    background-color: palevioletred;
+    color: rgb(167, 255, 167);
+}
+
+
+.levels button :first-child {
+    background-color: rgb(167, 255, 167);
+
+}
+
+.levels button :nth-child(2) {
+    background-color: rgb(244, 237, 104);
+
+}
+
+.levels button :last-child {
+    background-color: rgb(123, 50, 163);
+
+}

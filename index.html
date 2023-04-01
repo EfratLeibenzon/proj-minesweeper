@@ -11,6 +11,21 @@
 
 <body onload="onInit()">
     <h3>let's play minesweeper!</h3>
+
+    <div class="modal">
+        <h2 class="msg">Game over</h2>
+        <button class="restart-btn" onclick="restartGame()">Restart</button>
+    </div>
+
+    <div class="levels">
+        <button onclick="setGameLevel('begginer')">begginer</button>
+        <button onclick="setGameLevel('medium')">medium</button>
+        <button onclick="setGameLevel('expert')">expert</button>
+    </div>
+
+    <div class="smiley"></div>
+    <div class="lives"></div>
+
     <div class="board"></div>
 
     <script src="js/main.js"></script>
